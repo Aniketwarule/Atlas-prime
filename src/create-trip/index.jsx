@@ -17,6 +17,7 @@ import { generateContent } from '@/service/AIModel';
 import { useNavigate, Link } from 'react-router-dom';
 import Header from '@/components/custom/Header';
 import { useTheme } from '@/context/ThemeContext';
+import { savePlannedTripToCache } from '@/lib/tripCache';
 import { ArrowLeft, ArrowRight, Check, MapPin, Wallet, Plane, Sparkles, Calendar } from 'lucide-react';
 
 const STEPS = [
@@ -140,6 +141,12 @@ function CreateTrip() {
         stage: 1,
         userEmail: userObj?.email,
         id: docId,
+      });
+
+      savePlannedTripToCache({
+        tripId: docId,
+        formData,
+        tripData: itineraryData,
       });
 
       setLoading(false);

@@ -16,6 +16,18 @@ const toTitle = (value) =>
     .trim()
     .replace(/^./, (c) => c.toUpperCase())
 
+const normalizePdfText = (value) =>
+  String(value ?? '')
+    .replace(/₹/g, 'INR ')
+    .replace(/\s+/g, ' ')
+    .trim()
+
+const formatCostForPdf = (value) => {
+  const normalized = normalizePdfText(value)
+  if (!normalized) return 'N/A'
+  return normalized.replace(/^INR\s*/i, 'INR ')
+}
+
 const normalizeItineraryDays = (itinerary) => {
   if (!itinerary) return []
 
@@ -148,16 +160,16 @@ export const generateTripPdf = (trip) => {
   y = sectionTitle(doc, y, 'Trip Overview', destination, createdAt)
 
   const overviewRows = [
-    ['Destination', destination],
-    ['Source', sel?.sourceLocation?.label || 'Not provided'],
-    ['Total Days', String(sel?.noOfDays || td?.totalDays || 'Not provided')],
-    ['Budget', sel?.budget || 'Not provided'],
-    ['Travelers', sel?.traveler || 'Not provided'],
-    ['Traveler Type', sel?.travelerType || 'Not provided'],
-    ['Travel Mode', sel?.travelMode || td?.travelMode || 'Not provided'],
-    ['Interests', Array.isArray(sel?.travelInterests) && sel.travelInterests.length ? sel.travelInterests.join(', ') : 'Not provided'],
-    ['Package', td?.packageTitle || 'Not provided'],
-    ['Generated On', createdAt],
+    ['Destination', normalizePdfText(destination)],
+    ['Source', normalizePdfText(sel?.sourceLocation?.label || 'Not provided')],
+    ['Total Days', normalizePdfText(String(sel?.noOfDays || td?.totalDays || 'Not provided'))],
+    ['Budget', normalizePdfText(sel?.budget || 'Not provided')],
+    ['Travelers', normalizePdfText(sel?.traveler || 'Not provided')],
+    ['Traveler Type', normalizePdfText(sel?.travelerType || 'Not provided')],
+    ['Travel Mode', normalizePdfText(sel?.travelMode || td?.travelMode || 'Not provided')],
+    ['Interests', normalizePdfText(Array.isArray(sel?.travelInterests) && sel.travelInterests.length ? sel.travelInterests.join(', ') : 'Not provided')],
+    ['Package', normalizePdfText(td?.packageTitle || 'Not provided')],
+    ['Generated On', normalizePdfText(createdAt)],
   ]
 
   y = addTable(doc, {
@@ -197,22 +209,22 @@ export const generateTripPdf = (trip) => {
       doc.setFont('helvetica', 'bold')
       doc.setFontSize(11)
       doc.setTextColor(15, 23, 42)
-      doc.text(`Day ${dayInfo.day}: ${dayInfo.theme}`, PAGE.left, y)
+      doc.text(normalizePdfText(`Day ${dayInfo.day}: ${dayInfo.theme}`), PAGE.left, y)
       y += 5
 
       doc.setFont('helvetica', 'normal')
       doc.setFontSize(9)
       doc.setTextColor(71, 85, 105)
-      doc.text(`Best Time: ${dayInfo.bestTimeToVisit || 'Flexible'}`, PAGE.left, y)
+      doc.text(normalizePdfText(`Best Time: ${dayInfo.bestTimeToVisit || 'Flexible'}`), PAGE.left, y)
       y += 2
 
       const dayRows = (dayInfo.activities || []).map((activity) => [
-        toTitle(activity?.timeOfDay || 'time'),
-        activity?.placeName || 'Not provided',
-        activity?.placeDetails || 'Not provided',
-        activity?.ticketPricing || 'N/A',
-        activity?.travelTime || 'N/A',
-        activity?.rating ? String(activity.rating) : 'N/A',
+        normalizePdfText(toTitle(activity?.timeOfDay || 'time')),
+        normalizePdfText(activity?.placeName || 'Not provided'),
+        normalizePdfText(activity?.placeDetails || 'Not provided'),
+        formatCostForPdf(activity?.ticketPricing || 'N/A'),
+        normalizePdfText(activity?.travelTime || 'N/A'),
+        normalizePdfText(activity?.rating ? String(activity.rating) : 'N/A'),
       ])
 
       y = addTable(doc, {
@@ -223,11 +235,11 @@ export const generateTripPdf = (trip) => {
         createdAt,
         columnStyles: {
           0: { cellWidth: 18 },
-          1: { cellWidth: 36 },
-          2: { cellWidth: 72 },
-          3: { cellWidth: 20 },
-          4: { cellWidth: 20 },
-          5: { cellWidth: 14, halign: 'center' },
+          1: { cellWidth: 34 },
+          2: { cellWidth: 68 },
+          3: { cellWidth: 24, overflow: 'ellipsize' },
+          4: { cellWidth: 24 },
+          5: { cellWidth: 12, halign: 'center' },
         },
       })
     })
@@ -239,18 +251,18 @@ export const generateTripPdf = (trip) => {
       y,
       head: [['Hotel', 'Address', 'Price', 'Rating', 'Description']],
       body: td.hotels.map((hotel) => [
-        hotel?.hotelName || 'N/A',
-        hotel?.hotelAddress || 'N/A',
-        hotel?.price || 'N/A',
-        hotel?.rating ? String(hotel.rating) : 'N/A',
-        hotel?.description || 'N/A',
+        normalizePdfText(hotel?.hotelName || 'N/A'),
+        normalizePdfText(hotel?.hotelAddress || 'N/A'),
+        formatCostForPdf(hotel?.price || 'N/A'),
+        normalizePdfText(hotel?.rating ? String(hotel.rating) : 'N/A'),
+        normalizePdfText(hotel?.description || 'N/A'),
       ]),
       destination,
       createdAt,
       columnStyles: {
         0: { cellWidth: 36 },
         1: { cellWidth: 42 },
-        2: { cellWidth: 20 },
+        2: { cellWidth: 24, overflow: 'ellipsize' },
         3: { cellWidth: 12, halign: 'center' },
         4: { cellWidth: 'auto' },
       },
@@ -263,18 +275,18 @@ export const generateTripPdf = (trip) => {
       y,
       head: [['Hostel', 'Address', 'Price', 'Rating', 'Description']],
       body: td.hostels.map((hostel) => [
-        hostel?.hostelName || 'N/A',
-        hostel?.hostelAddress || 'N/A',
-        hostel?.price || 'N/A',
-        hostel?.rating ? String(hostel.rating) : 'N/A',
-        hostel?.description || 'N/A',
+        normalizePdfText(hostel?.hostelName || 'N/A'),
+        normalizePdfText(hostel?.hostelAddress || 'N/A'),
+        formatCostForPdf(hostel?.price || 'N/A'),
+        normalizePdfText(hostel?.rating ? String(hostel.rating) : 'N/A'),
+        normalizePdfText(hostel?.description || 'N/A'),
       ]),
       destination,
       createdAt,
       columnStyles: {
         0: { cellWidth: 36 },
         1: { cellWidth: 42 },
-        2: { cellWidth: 20 },
+        2: { cellWidth: 24, overflow: 'ellipsize' },
         3: { cellWidth: 12, halign: 'center' },
         4: { cellWidth: 'auto' },
       },
@@ -287,12 +299,12 @@ export const generateTripPdf = (trip) => {
       y,
       head: [['Option', 'No.', 'Departure', 'Arrival', 'Duration', 'Price']],
       body: td.transportOptions.map((option) => [
-        option?.name || option?.airline || option?.trainName || option?.busName || 'N/A',
-        option?.number || option?.trainNumber || option?.flightNumber || option?.busNumber || 'N/A',
-        option?.departureTime || 'N/A',
-        option?.arrivalTime || 'N/A',
-        option?.duration || 'N/A',
-        option?.price || 'N/A',
+        normalizePdfText(option?.name || option?.airline || option?.trainName || option?.busName || 'N/A'),
+        normalizePdfText(option?.number || option?.trainNumber || option?.flightNumber || option?.busNumber || 'N/A'),
+        normalizePdfText(option?.departureTime || 'N/A'),
+        normalizePdfText(option?.arrivalTime || 'N/A'),
+        normalizePdfText(option?.duration || 'N/A'),
+        formatCostForPdf(option?.price || 'N/A'),
       ]),
       destination,
       createdAt,
@@ -301,8 +313,8 @@ export const generateTripPdf = (trip) => {
         1: { cellWidth: 24 },
         2: { cellWidth: 24 },
         3: { cellWidth: 24 },
-        4: { cellWidth: 24 },
-        5: { cellWidth: 'auto' },
+        4: { cellWidth: 20 },
+        5: { cellWidth: 'auto', overflow: 'ellipsize' },
       },
     })
   }
@@ -312,12 +324,12 @@ export const generateTripPdf = (trip) => {
     y = addTable(doc, {
       y,
       head: [['Category', 'Amount']],
-      body: Object.entries(td.costBreakdown).map(([key, value]) => [toTitle(key), String(value)]),
+      body: Object.entries(td.costBreakdown).map(([key, value]) => [normalizePdfText(toTitle(key)), formatCostForPdf(String(value))]),
       destination,
       createdAt,
       columnStyles: {
         0: { cellWidth: 60, fontStyle: 'bold' },
-        1: { cellWidth: 'auto' },
+        1: { cellWidth: 'auto', overflow: 'ellipsize' },
       },
     })
   }
@@ -328,17 +340,17 @@ export const generateTripPdf = (trip) => {
       y,
       head: [['Experience', 'Category', 'Estimated Cost', 'Description']],
       body: td.localExperiences.map((exp) => [
-        exp?.title || 'N/A',
-        exp?.category || 'N/A',
-        exp?.estimatedCost || 'N/A',
-        exp?.description || 'N/A',
+        normalizePdfText(exp?.title || 'N/A'),
+        normalizePdfText(exp?.category || 'N/A'),
+        formatCostForPdf(exp?.estimatedCost || 'N/A'),
+        normalizePdfText(exp?.description || 'N/A'),
       ]),
       destination,
       createdAt,
       columnStyles: {
         0: { cellWidth: 40 },
         1: { cellWidth: 25 },
-        2: { cellWidth: 25 },
+        2: { cellWidth: 30, overflow: 'ellipsize' },
         3: { cellWidth: 'auto' },
       },
     })
@@ -349,7 +361,7 @@ export const generateTripPdf = (trip) => {
     addTable(doc, {
       y,
       head: [['Hack', 'Description']],
-      body: td.travelHacks.map((hack) => [hack?.title || 'N/A', hack?.description || 'N/A']),
+      body: td.travelHacks.map((hack) => [normalizePdfText(hack?.title || 'N/A'), normalizePdfText(hack?.description || 'N/A')]),
       destination,
       createdAt,
       columnStyles: {
