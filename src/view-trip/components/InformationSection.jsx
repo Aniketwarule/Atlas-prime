@@ -3,6 +3,8 @@ import { GetPlaceDetails, PHOTO_REF_URL } from '@/service/GlobalApi';
 import { Calendar, Clock, ArrowLeft, Download } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
+import { toast } from 'sonner';
+import { generateTripPdf } from '@/lib/tripPdf';
 
 function InformationSection({ trip }) {
   const [photoUrl, setPhotoUrl] = useState('');
@@ -41,6 +43,16 @@ function InformationSection({ trip }) {
     return d1.toLocaleDateString('en-US', opts);
   };
 
+  const handleExportPdf = () => {
+    try {
+      generateTripPdf(trip);
+      toast.success('Your detailed AtlasPrime itinerary PDF is downloading.');
+    } catch (error) {
+      console.error('PDF generation failed:', error);
+      toast.error('Unable to generate PDF right now. Please try again.');
+    }
+  };
+
   return (
     <div>
       {/* Top Bar */}
@@ -50,7 +62,7 @@ function InformationSection({ trip }) {
             <ArrowLeft className="w-4 h-4" /> Edit Preferences
           </Button>
         </Link>
-        <Button onClick={() => window.print()} variant="outline"
+        <Button onClick={handleExportPdf} variant="outline"
           className="border-coral/40 text-coral hover:bg-coral/10 rounded-full px-5 py-2 text-sm font-medium gap-2 print:hidden">
           <Download className="w-4 h-4" /> Export PDF
         </Button>
