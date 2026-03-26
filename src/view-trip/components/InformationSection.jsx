@@ -30,6 +30,7 @@ function InformationSection({ trip }) {
   const depDate = sel?.departureDate;
   const retDate = sel?.returnDate;
   const highlights = td?.tripHighlights || [];
+  const bannerImage = photoUrl || td?.bannerImage;
 
   const formatDateRange = () => {
     if (!depDate) return '';
@@ -58,8 +59,8 @@ function InformationSection({ trip }) {
       {/* Hero Banner with Real Destination Image */}
       <div className="relative rounded-3xl overflow-hidden" style={{ minHeight: '280px' }}>
         {/* Background Image */}
-        {photoUrl ? (
-          <img src={photoUrl} alt={destination}
+        {bannerImage ? (
+          <img src={bannerImage} alt={destination}
             className="absolute inset-0 w-full h-full object-cover" />
         ) : (
           <div className="absolute inset-0 bg-gradient-to-r from-blue-700 via-blue-600 to-blue-800" />

@@ -20,8 +20,15 @@ function Header() {
 
   const navLinks = [
     { label: 'Home', href: '/' },
-    { label: 'Destinations', href: '#features' },
+    { label: 'Discover', href: '/discover' },
+    { label: 'Destinations', href: '/destinations' },
   ]
+
+  const isLinkActive = (href) => {
+    if (href === '/') return location.pathname === '/'
+    if (href.startsWith('/#')) return location.pathname === '/'
+    return location.pathname === href
+  }
 
   return (
     <header
@@ -53,7 +60,11 @@ function Header() {
               key={link.label}
               to={link.href}
               className={`text-sm font-medium hover:text-coral transition-colors duration-200 ${
-                isDark ? 'text-slate-400' : 'text-slate-600'
+                isLinkActive(link.href)
+                  ? 'text-coral'
+                  : isDark
+                    ? 'text-slate-400'
+                    : 'text-slate-600'
               }`}
             >
               {link.label}
@@ -115,7 +126,13 @@ function Header() {
                 key={link.label}
                 to={link.href}
                 onClick={() => setMobileOpen(false)}
-                className={`text-base font-medium py-2 transition-colors hover:text-coral ${isDark ? 'text-white' : 'text-navy'}`}
+                className={`text-base font-medium py-2 transition-colors hover:text-coral ${
+                  isLinkActive(link.href)
+                    ? 'text-coral'
+                    : isDark
+                      ? 'text-white'
+                      : 'text-navy'
+                }`}
               >
                 {link.label}
               </Link>

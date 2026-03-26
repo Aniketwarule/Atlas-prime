@@ -5,6 +5,7 @@ import { useParams } from 'react-router-dom';
 import { toast } from 'sonner';
 import { generateContent } from '@/service/AIModel';
 import { PROMPT_STAGE_2, PROMPT_STAGE_3 } from '@/constants/options';
+import { getHardcodedTripById } from '@/constants/hardcodedTrips';
 import Header from '@/components/custom/Header';
 import InformationSection from '../components/InformationSection';
 import Hotels from '../components/Hotels';
@@ -26,13 +27,31 @@ function ViewTrip() {
   const stage3Triggered = useRef(false);
 
   const GetTripData = async () => {
-    const docRef = doc(db, 'finaltrip', tripId);
-    const docSnap = await getDoc(docRef);
-    if (docSnap.exists()) {
-      setTrip(docSnap.data());
-    } else {
-      toast('No trip found');
+    const hardcodedTrip = getHardcodedTripById(tripId);
+
+    try {
+      const docRef = doc(db, 'finaltrip', tripId);
+      const docSnap = await getDoc(docRef);
+
+      if (docSnap.exists()) {
+        setTrip(docSnap.data());
+      } else if (hardcodedTrip) {
+        setTrip(hardcodedTrip);
+        toast('Loaded curated destination itinerary.');
+      } else {
+        toast('No trip found');
+      }
+    } catch (error) {
+      console.error('Failed to fetch trip, trying hardcoded fallback:', error);
+
+      if (hardcodedTrip) {
+        setTrip(hardcodedTrip);
+        toast('Loaded curated destination itinerary.');
+      } else {
+        toast.error('Unable to load trip right now. Please try again.');
+      }
     }
+
     setLoading(false);
   };
 

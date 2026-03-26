@@ -16,6 +16,7 @@ import { AiOutlineLoading3Quarters } from "react-icons/ai";
 import { generateContent } from '@/service/AIModel';
 import { useNavigate, Link } from 'react-router-dom';
 import Header from '@/components/custom/Header';
+import { useTheme } from '@/context/ThemeContext';
 import { ArrowLeft, ArrowRight, Check, MapPin, Wallet, Plane, Sparkles, Calendar } from 'lucide-react';
 
 const STEPS = [
@@ -24,28 +25,35 @@ const STEPS = [
   { id: 3, title: 'Travel Mode', icon: Plane },
 ];
 
-const placesStyles = (accentHsl) => ({
+const placesStyles = (accentHsl, isDark) => ({
   control: (base) => ({
     ...base, fontFamily: "'Plus Jakarta Sans', system-ui, sans-serif", borderRadius: '1rem',
-    background: 'rgba(255,255,255,0.85)', borderColor: `hsla(${accentHsl}, 0.3)`, padding: '6px 4px',
-    backdropFilter: 'blur(12px)', color: '#0B1120', boxShadow: '0 2px 12px rgba(11,17,32,0.05)',
+    background: isDark ? 'rgba(15,23,42,0.55)' : 'rgba(255,255,255,0.85)',
+    borderColor: isDark ? 'rgba(148,163,184,0.22)' : `hsla(${accentHsl}, 0.3)`, padding: '6px 4px',
+    backdropFilter: 'blur(12px)', color: isDark ? '#E2E8F0' : '#0B1120', boxShadow: '0 2px 12px rgba(11,17,32,0.05)',
     transition: 'all 0.3s cubic-bezier(0.16,1,0.3,1)',
-    '&:hover': { borderColor: `hsla(${accentHsl}, 0.55)`, boxShadow: `0 4px 24px hsla(${accentHsl}, 0.12)` },
+    '&:hover': {
+      borderColor: isDark ? 'rgba(148,163,184,0.4)' : `hsla(${accentHsl}, 0.55)`,
+      boxShadow: `0 4px 24px hsla(${accentHsl}, 0.12)`
+    },
   }),
-  singleValue: (base) => ({ ...base, color: '#0B1120', fontFamily: "'Plus Jakarta Sans'" }),
-  input: (base) => ({ ...base, color: '#0B1120', fontFamily: "'Plus Jakarta Sans'" }),
-  placeholder: (base) => ({ ...base, color: '#94A3B8', fontFamily: "'Plus Jakarta Sans'" }),
+  singleValue: (base) => ({ ...base, color: isDark ? '#E2E8F0' : '#0B1120', fontFamily: "'Plus Jakarta Sans'" }),
+  input: (base) => ({ ...base, color: isDark ? '#E2E8F0' : '#0B1120', fontFamily: "'Plus Jakarta Sans'" }),
+  placeholder: (base) => ({ ...base, color: isDark ? '#94A3B8' : '#94A3B8', fontFamily: "'Plus Jakarta Sans'" }),
   menu: (base) => ({
-    ...base, fontFamily: "'Plus Jakarta Sans'", background: 'rgba(255,248,240,0.98)',
-    backdropFilter: 'blur(20px)', border: '1px solid rgba(245,237,227,0.6)', borderRadius: '1rem',
+    ...base, fontFamily: "'Plus Jakarta Sans'",
+    background: isDark ? 'rgba(15,23,42,0.98)' : 'rgba(255,248,240,0.98)',
+    backdropFilter: 'blur(20px)', border: isDark ? '1px solid rgba(148,163,184,0.22)' : '1px solid rgba(245,237,227,0.6)', borderRadius: '1rem',
     overflow: 'hidden', boxShadow: '0 8px 32px rgba(11,17,32,0.12)',
   }),
   option: (base, state) => ({
-    ...base, fontFamily: "'Plus Jakarta Sans'", background: state.isFocused ? `hsla(${accentHsl}, 0.1)` : 'transparent', color: '#0B1120', cursor: 'pointer',
+    ...base, fontFamily: "'Plus Jakarta Sans'", background: state.isFocused ? `hsla(${accentHsl}, 0.12)` : 'transparent', color: isDark ? '#E2E8F0' : '#0B1120', cursor: 'pointer',
   }),
 });
 
 function CreateTrip() {
+  const { theme } = useTheme();
+  const isDark = theme === 'dark';
   const [place, setPlace] = useState();
   const [currentStep, setCurrentStep] = useState(1);
   const [formData, setFormData] = useState({
@@ -221,33 +229,33 @@ function CreateTrip() {
                     <label className="flex items-center gap-2.5 text-sm font-semibold text-navy dark:text-white mb-3"><span className="text-xl">🌍</span>Where to?</label>
                     <GooglePlacesAutoComplete apiKey={import.meta.env.VITE_GOOGLE_PLACE_API_KEY}
                       selectProps={{ place, onChange: (v) => { setPlace(v); handleInputChange('location', v) },
-                        placeholder: 'Choose your destination', styles: placesStyles('8, 89%, 62%') }} />
+                        placeholder: 'Choose your destination', styles: placesStyles('8, 89%, 62%', isDark) }} />
                   </div>
                   <div>
                     <label className="flex items-center gap-2.5 text-sm font-semibold text-navy dark:text-white mb-3"><span className="text-xl">📍</span>Starting from?</label>
                     <GooglePlacesAutoComplete apiKey={import.meta.env.VITE_GOOGLE_PLACE_API_KEY}
                       selectProps={{ placeholder: 'Select your origin', onChange: (v) => handleInputChange('sourceLocation', v),
-                        styles: placesStyles('37, 90%, 51%') }} />
+                        styles: placesStyles('37, 90%, 51%', isDark) }} />
                   </div>
                 </div>
                 <div className="grid sm:grid-cols-2 gap-6">
                   <div>
                     <label className="flex items-center gap-2.5 text-sm font-semibold text-navy dark:text-white mb-3"><span className="text-xl">🗓️</span>Departure Date</label>
                     <Input type="date" value={formData.departureDate}
-                      className="bg-white/85 border border-cream-dark text-navy rounded-2xl p-4 focus:border-coral focus:ring-2 focus:ring-coral/20 shadow-sm hover:shadow-md font-sans"
+                      className="bg-white/85 dark:bg-white/5 border border-cream-dark dark:border-white/10 text-navy dark:text-white rounded-2xl p-4 focus:border-coral focus:ring-2 focus:ring-coral/20 shadow-sm hover:shadow-md font-sans"
                       onChange={(e) => handleInputChange('departureDate', e.target.value)} />
                   </div>
                   <div>
                     <label className="flex items-center gap-2.5 text-sm font-semibold text-navy dark:text-white mb-3"><span className="text-xl">⏱️</span>Trip Duration (days)</label>
                     <Input type="number" placeholder="e.g. 5" min="1" value={formData.noOfDays}
-                      className="bg-white/85 border border-cream-dark text-navy placeholder-slate-400 rounded-2xl p-4 focus:border-coral focus:ring-2 focus:ring-coral/20 shadow-sm hover:shadow-md font-sans"
+                      className="bg-white/85 dark:bg-white/5 border border-cream-dark dark:border-white/10 text-navy dark:text-white placeholder-slate-400 dark:placeholder-slate-500 rounded-2xl p-4 focus:border-coral focus:ring-2 focus:ring-coral/20 shadow-sm hover:shadow-md font-sans"
                       onChange={(e) => handleInputChange('noOfDays', e.target.value)} />
                   </div>
                 </div>
                 {formData.returnDate && (
-                  <div className="bg-cream-dark/40 rounded-2xl p-4 flex items-center gap-3">
+                  <div className="bg-cream-dark/40 dark:bg-white/5 rounded-2xl p-4 flex items-center gap-3 border border-cream-dark/60 dark:border-white/10">
                     <Calendar className="w-5 h-5 text-coral" />
-                    <span className="text-sm text-navy font-medium">Return Date: <span className="font-bold">{formData.returnDate}</span></span>
+                    <span className="text-sm text-navy dark:text-white font-medium">Return Date: <span className="font-bold">{formData.returnDate}</span></span>
                   </div>
                 )}
               </div>
@@ -263,10 +271,10 @@ function CreateTrip() {
                       <div key={i} onClick={() => handleInputChange('budget', item.title)}
                         className={`relative p-7 rounded-2xl border-2 transition-all duration-300 cursor-pointer group
                           ${formData.budget === item.title ? 'border-coral bg-gradient-to-br from-coral/8 to-amber/8 shadow-xl shadow-coral/15 scale-[1.03]'
-                            : 'border-cream-dark bg-white/60 hover:border-coral/30 hover:bg-coral/5 hover:scale-[1.02] hover:shadow-lg'}`}>
+                            : 'border-cream-dark dark:border-white/10 bg-white/60 dark:bg-white/5 hover:border-coral/30 hover:bg-coral/5 hover:scale-[1.02] hover:shadow-lg'}`}>
                         <div className="text-4xl mb-4 group-hover:scale-110 transition-transform">{item.icon}</div>
-                        <h3 className="font-serif font-bold text-lg text-navy mb-1.5">{item.title}</h3>
-                        <p className="text-sm text-slate-500">{item.desc}</p>
+                        <h3 className="font-serif font-bold text-lg text-navy dark:text-white mb-1.5">{item.title}</h3>
+                        <p className="text-sm text-slate-500 dark:text-slate-400">{item.desc}</p>
                         {formData.budget === item.title && (
                           <div className="absolute top-3 right-3 w-6 h-6 bg-gradient-to-br from-coral to-amber rounded-full flex items-center justify-center">
                             <Check className="w-3.5 h-3.5 text-white" />
@@ -283,10 +291,10 @@ function CreateTrip() {
                       <div key={i} onClick={() => { handleInputChange('traveler', item.people); handleInputChange('travelerType', item.type); }}
                         className={`relative p-6 rounded-2xl border-2 transition-all duration-300 cursor-pointer group text-center
                           ${formData.traveler === item.people ? 'border-amber bg-gradient-to-br from-amber/8 to-coral/8 shadow-xl shadow-amber/15 scale-[1.03]'
-                            : 'border-cream-dark bg-white/60 hover:border-amber/30 hover:bg-amber/5 hover:scale-[1.02] hover:shadow-lg'}`}>
+                            : 'border-cream-dark dark:border-white/10 bg-white/60 dark:bg-white/5 hover:border-amber/30 hover:bg-amber/5 hover:scale-[1.02] hover:shadow-lg'}`}>
                         <div className="text-4xl mb-3 group-hover:scale-110 transition-transform">{item.icon}</div>
-                        <h3 className="font-serif font-bold text-base text-navy mb-1">{item.title}</h3>
-                        <p className="text-xs text-slate-500">{item.desc}</p>
+                        <h3 className="font-serif font-bold text-base text-navy dark:text-white mb-1">{item.title}</h3>
+                        <p className="text-xs text-slate-500 dark:text-slate-400">{item.desc}</p>
                         {formData.traveler === item.people && (
                           <div className="absolute top-2.5 right-2.5 w-6 h-6 bg-gradient-to-br from-amber to-coral rounded-full flex items-center justify-center">
                             <Check className="w-3.5 h-3.5 text-white" />
@@ -309,10 +317,10 @@ function CreateTrip() {
                       <div key={i} onClick={() => handleInputChange('travelMode', item.title)}
                         className={`relative p-6 rounded-2xl border-2 transition-all duration-300 cursor-pointer group text-center
                           ${formData.travelMode === item.title ? 'border-teal bg-gradient-to-br from-teal/10 to-coral/5 shadow-xl shadow-teal/15 scale-[1.03]'
-                            : 'border-cream-dark bg-white/60 hover:border-teal/30 hover:bg-teal/5 hover:scale-[1.02] hover:shadow-lg'}`}>
+                            : 'border-cream-dark dark:border-white/10 bg-white/60 dark:bg-white/5 hover:border-teal/30 hover:bg-teal/5 hover:scale-[1.02] hover:shadow-lg'}`}>
                         <div className="text-4xl mb-3 group-hover:scale-110 transition-transform">{item.icon}</div>
-                        <h3 className="font-serif font-bold text-base text-navy mb-1">{item.title}</h3>
-                        <p className="text-xs text-slate-500">{item.desc}</p>
+                        <h3 className="font-serif font-bold text-base text-navy dark:text-white mb-1">{item.title}</h3>
+                        <p className="text-xs text-slate-500 dark:text-slate-400">{item.desc}</p>
                         {formData.travelMode === item.title && (
                           <div className="absolute top-2.5 right-2.5 w-6 h-6 bg-gradient-to-br from-teal to-coral rounded-full flex items-center justify-center">
                             <Check className="w-3.5 h-3.5 text-white" />
@@ -350,7 +358,7 @@ function CreateTrip() {
 
                 {/* Mini Summary */}
                 <div className="bg-gradient-to-br from-navy/[0.03] to-coral/[0.03] dark:from-white/[0.03] dark:to-coral/[0.05] rounded-2xl p-6 border border-cream-dark/60 dark:border-white/10">
-                  <h3 className="font-serif text-lg font-bold text-navy mb-4 flex items-center gap-2">
+                  <h3 className="font-serif text-lg font-bold text-navy dark:text-white mb-4 flex items-center gap-2">
                     <Sparkles className="w-5 h-5 text-coral" /> Trip Summary
                   </h3>
                   <div className="grid sm:grid-cols-2 gap-3 text-sm">
@@ -368,8 +376,8 @@ function CreateTrip() {
                         <span>{r.i}</span>
                         <div>
                           <div className="text-xs text-slate-400 font-medium">{r.l}</div>
-                          <div className="text-navy font-semibold truncate max-w-[200px]">
-                            {r.v || <span className="text-slate-300 italic font-normal">—</span>}
+                          <div className="text-navy dark:text-white font-semibold truncate max-w-[200px]">
+                            {r.v || <span className="text-slate-400 dark:text-slate-500 italic font-normal">—</span>}
                           </div>
                         </div>
                       </div>
@@ -380,15 +388,15 @@ function CreateTrip() {
             </div>
 
             {/* Navigation */}
-            <div className="flex items-center justify-between mt-10 pt-6 border-t border-cream-dark/40">
+            <div className="flex items-center justify-between mt-10 pt-6 border-t border-cream-dark/40 dark:border-white/10">
               {currentStep > 1 ? (
                 <Button onClick={prevStep} variant="ghost"
-                  className="flex items-center gap-2 text-navy hover:text-coral rounded-full px-6 py-5 font-semibold hover:bg-coral/5">
+                  className="flex items-center gap-2 text-navy dark:text-white hover:text-coral rounded-full px-6 py-5 font-semibold hover:bg-coral/5">
                   <ArrowLeft className="w-4 h-4" /> Back
                 </Button>
               ) : (
                 <Link to="/"><Button variant="ghost"
-                  className="flex items-center gap-2 text-navy hover:text-coral rounded-full px-6 py-5 font-semibold hover:bg-coral/5">
+                  className="flex items-center gap-2 text-navy dark:text-white hover:text-coral rounded-full px-6 py-5 font-semibold hover:bg-coral/5">
                   <ArrowLeft className="w-4 h-4" /> Home
                 </Button></Link>
               )}
@@ -414,7 +422,7 @@ function CreateTrip() {
 
         {/* Login Dialog */}
         <Dialog open={openDialog}>
-          <DialogContent className="bg-white/95 backdrop-blur-2xl border border-cream-dark p-10 rounded-3xl shadow-2xl font-sans max-w-md">
+          <DialogContent className="bg-white/95 dark:bg-[#111827]/95 backdrop-blur-2xl border border-cream-dark dark:border-white/10 p-10 rounded-3xl shadow-2xl font-sans max-w-md">
             <DialogHeader>
               <DialogTitle className="text-center mb-6">
                 <span className="font-serif text-3xl font-bold bg-gradient-to-r from-coral to-amber bg-clip-text text-transparent">Welcome Aboard!</span>
@@ -426,7 +434,7 @@ function CreateTrip() {
                     <span className="text-4xl">✨</span>
                   </div>
                 </div>
-                <p className="text-slate-600 mb-8 text-center text-sm max-w-sm">
+                <p className="text-slate-600 dark:text-slate-300 mb-8 text-center text-sm max-w-sm">
                   Sign in to create personalized itineraries with AI-powered travel planning.
                 </p>
                 <Button onClick={login}

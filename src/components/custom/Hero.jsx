@@ -1,6 +1,7 @@
 import React from 'react'
 import { Button } from '../ui/button'
 import { Link } from 'react-router-dom'
+import { hardcodedDestinationCards } from '@/constants/hardcodedTrips'
 import {
   Sparkles, Map, Plane, Globe, Star, ArrowRight, MapPin,
   Brain, Wallet, Compass, ChevronRight, Users, Clock, Shield,
@@ -55,9 +56,15 @@ function Hero() {
                 </span>
               </Button>
             </Link>
-            <a href="#how-it-works">
+            <Link to="/discover">
               <Button variant="ghost"
                 className="px-8 py-6 text-base font-semibold text-navy dark:text-white hover:text-coral border-2 border-cream-dark dark:border-white/20 hover:border-coral/20 rounded-full transition-all hover:bg-coral/5">
+                I Don&apos;t Have a Destination
+              </Button>
+            </Link>
+            <a href="#how-it-works">
+              <Button variant="ghost"
+                className="px-8 py-6 text-base font-semibold text-slate-600 dark:text-slate-300 hover:text-coral border-2 border-cream-dark dark:border-white/20 hover:border-coral/20 rounded-full transition-all hover:bg-coral/5">
                 See How It Works
               </Button>
             </a>
@@ -77,22 +84,37 @@ function Hero() {
             ))}
           </div>
 
-          {/* Destination Cards — Below hero content, proper grid */}
-          <div className="grid grid-cols-3 gap-6 max-w-xl mx-auto animate-fade-in-up delay-500">
-            {[
-              { emoji: '🗼', name: 'Paris, France', info: '5 days · ₹85,000', delay: '0s' },
-              { emoji: '🏯', name: 'Tokyo, Japan', info: '7 days · ₹1,20,000', delay: '0.2s' },
-              { emoji: '🏖️', name: 'Bali, Indonesia', info: '4 days · ₹60,000', delay: '0.4s' },
-            ].map((card, i) => (
-              <div key={i} className="bg-white/80 dark:bg-white/5 backdrop-blur-md rounded-2xl p-4 shadow-lg border border-cream-dark/40 dark:border-white/10 hover:shadow-xl hover:-translate-y-1 transition-all duration-300"
-                style={{ animationDelay: card.delay }}>
-                <div className="w-full h-20 rounded-xl bg-gradient-to-br from-coral/15 to-amber/15 dark:from-coral/20 dark:to-amber/20 flex items-center justify-center mb-3">
-                  <span className="text-3xl">{card.emoji}</span>
-                </div>
-                <p className="font-semibold text-sm text-navy dark:text-white">{card.name}</p>
-                <p className="text-xs text-slate-500 dark:text-slate-400">{card.info}</p>
-              </div>
-            ))}
+          {/* Destination Cards — Clickable curated samples */}
+          <div id="destinations" className="max-w-6xl mx-auto animate-fade-in-up delay-500">
+            <div className="flex items-center justify-between gap-4 mb-4">
+              <p className="text-sm uppercase tracking-[0.2em] text-coral/80 font-semibold">Featured Destinations</p>
+              <Link to="/destinations" className="text-sm font-semibold text-coral hover:text-coral-hover transition-colors">
+                View All Destinations →
+              </Link>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+              {hardcodedDestinationCards.slice(0, 3).map((card, i) => (
+                <Link
+                  key={card.tripId}
+                  to={`/view-trip/${card.tripId}`}
+                  className="bg-white/80 dark:bg-white/5 backdrop-blur-md rounded-2xl p-4 shadow-lg border border-cream-dark/40 dark:border-white/10 hover:shadow-xl hover:-translate-y-1 transition-all duration-300"
+                  style={{ animationDelay: `${i * 0.06}s` }}
+                >
+                  <div className="relative w-full h-24 rounded-xl overflow-hidden mb-3">
+                    <img
+                      src={card.image}
+                      alt={card.name}
+                      className="w-full h-full object-cover"
+                      loading="lazy"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/35 to-transparent" />
+                  </div>
+                  <p className="font-semibold text-sm text-navy dark:text-white">{card.name}</p>
+                  <p className="text-xs text-slate-500 dark:text-slate-400">{card.info}</p>
+                  <p className="text-[11px] text-coral/90 mt-1 font-semibold">{card.packageTitle}</p>
+                </Link>
+              ))}
+            </div>
           </div>
         </div>
       </section>
