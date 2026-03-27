@@ -4,14 +4,12 @@ import { PROMPT_STAGE_1, SelectBudgetoptions, SelectTravelesList, SelectTravelMo
 import React, { useState } from 'react';
 import GooglePlacesAutoComplete from 'react-google-places-autocomplete';
 import { toast } from 'sonner';
-import { doc, setDoc } from 'firebase/firestore';
-import { db } from '@/service/fireBaseConfig';
 import { AiOutlineLoading3Quarters } from "react-icons/ai";
 import { generateContent } from '@/service/AIModel';
 import { useNavigate, Link } from 'react-router-dom';
 import Header from '@/components/custom/Header';
 import { useTheme } from '@/context/ThemeContext';
-import { savePlannedTripToCache } from '@/lib/tripCache';
+import { savePlannedTripToCache, upsertTripDocumentInCache } from '@/lib/tripCache';
 import { ArrowLeft, ArrowRight, Check, MapPin, Wallet, Plane, Sparkles, Calendar } from 'lucide-react';
 
 const STEPS = [
@@ -116,6 +114,16 @@ function CreateTrip() {
 
       const responseText = await generateContent(prompt);
       const itineraryData = parseAIResponse(responseText);
+
+      const docId = Date.now().toString();
+      upsertTripDocumentInCache({
+        tripId: docId,
+        id: docId,
+        userSelection: formData,
+        tripData: itineraryData,
+        stage: 1,
+        createdAt: new Date().toISOString(),
+      });
 
       savePlannedTripToCache({
         tripId: docId,

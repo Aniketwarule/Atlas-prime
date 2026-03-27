@@ -1,6 +1,8 @@
 const CACHE_KEY = 'atlasprime:planned-trips-cache'
+const TRIP_DOCS_CACHE_KEY = 'atlasprime:trip-documents-cache'
 const CACHE_TTL_MS = 14 * 24 * 60 * 60 * 1000
 const MAX_CACHE_ITEMS = 24
+const MAX_TRIP_DOCS = 48
 
 const normalizeString = (value, fallback = '') => {
   const text = typeof value === 'string' ? value.trim() : ''
@@ -53,6 +55,43 @@ const writeCache = (items) => {
   }
 }
 
+const readTripDocsCache = () => {
+  if (typeof window === 'undefined') return []
+
+  try {
+    const raw = localStorage.getItem(TRIP_DOCS_CACHE_KEY)
+    if (!raw) return []
+    const parsed = JSON.parse(raw)
+    return Array.isArray(parsed) ? parsed : []
+  } catch (error) {
+    console.error('Failed to parse trip documents cache:', error)
+    return []
+  }
+}
+
+const writeTripDocsCache = (items) => {
+  if (typeof window === 'undefined') return
+
+  try {
+    localStorage.setItem(TRIP_DOCS_CACHE_KEY, JSON.stringify(items))
+  } catch (error) {
+    console.error('Failed to write trip documents cache:', error)
+  }
+}
+
+const cloneValue = (value) => JSON.parse(JSON.stringify(value))
+
+const getCleanTripDocs = () => {
+  const now = Date.now()
+  const cleaned = readTripDocsCache()
+    .filter((item) => item && item.id)
+    .filter((item) => now - toTimestamp(item.updatedAt || item.createdAt) <= CACHE_TTL_MS)
+    .sort((a, b) => toTimestamp(b.updatedAt || b.createdAt) - toTimestamp(a.updatedAt || a.createdAt))
+
+  writeTripDocsCache(cleaned)
+  return cleaned
+}
+
 export const getCachedPlannedTrips = () => {
   const now = Date.now()
   const cleaned = readCache()
@@ -96,4 +135,30 @@ export const savePlannedTripToCache = ({ tripId, formData, tripData }) => {
 
   const next = [entry, ...dedupedByPlan].slice(0, MAX_CACHE_ITEMS)
   writeCache(next)
+}
+
+export const upsertTripDocumentInCache = (tripDocument) => {
+  const id = normalizeString(tripDocument?.id || tripDocument?.tripId)
+  if (!id) return
+
+  const current = getCleanTripDocs()
+  const nextDoc = {
+    ...tripDocument,
+    id,
+    updatedAt: new Date().toISOString(),
+    createdAt: normalizeString(tripDocument?.createdAt, new Date().toISOString()),
+  }
+
+  const withoutCurrent = current.filter((item) => item.id !== id)
+  const next = [nextDoc, ...withoutCurrent].slice(0, MAX_TRIP_DOCS)
+  writeTripDocsCache(next)
+}
+
+export const getTripDocumentFromCache = (tripId) => {
+  const id = normalizeString(tripId)
+  if (!id) return null
+
+  const docs = getCleanTripDocs()
+  const found = docs.find((item) => item.id === id)
+  return found ? cloneValue(found) : null
 }

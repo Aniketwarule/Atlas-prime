@@ -1,11 +1,10 @@
-import { db } from '@/service/fireBaseConfig';
-import { doc, getDoc, updateDoc } from 'firebase/firestore';
 import React, { useEffect, useState, useRef } from 'react';
 import { useParams } from 'react-router-dom';
 import { toast } from 'sonner';
 import { generateContent } from '@/service/AIModel';
 import { PROMPT_STAGE_2, PROMPT_STAGE_3 } from '@/constants/options';
 import { getHardcodedTripById } from '@/constants/hardcodedTrips';
+import { getTripDocumentFromCache, upsertTripDocumentInCache } from '@/lib/tripCache';
 import Header from '@/components/custom/Header';
 import InformationSection from '../components/InformationSection';
 import Hotels from '../components/Hotels';
@@ -28,28 +27,15 @@ function ViewTrip() {
 
   const GetTripData = async () => {
     const hardcodedTrip = getHardcodedTripById(tripId);
+    const cachedTrip = getTripDocumentFromCache(tripId);
 
-    try {
-      const docRef = doc(db, 'finaltrip', tripId);
-      const docSnap = await getDoc(docRef);
-
-      if (docSnap.exists()) {
-        setTrip(docSnap.data());
-      } else if (hardcodedTrip) {
-        setTrip(hardcodedTrip);
-        toast('Loaded curated destination itinerary.');
-      } else {
-        toast('No trip found');
-      }
-    } catch (error) {
-      console.error('Failed to fetch trip, trying hardcoded fallback:', error);
-
-      if (hardcodedTrip) {
-        setTrip(hardcodedTrip);
-        toast('Loaded curated destination itinerary.');
-      } else {
-        toast.error('Unable to load trip right now. Please try again.');
-      }
+    if (cachedTrip) {
+      setTrip(cachedTrip);
+    } else if (hardcodedTrip) {
+      setTrip(hardcodedTrip);
+      toast('Loaded curated destination itinerary.');
+    } else {
+      toast('No trip found');
     }
 
     setLoading(false);
@@ -94,17 +80,23 @@ function ViewTrip() {
         .replace('{sourceLocation}', sel?.sourceLocation?.label);
       const text = await generateContent(prompt);
       const data = parseAIResponse(text);
-      const docRef = doc(db, 'finaltrip', tripId);
-      await updateDoc(docRef, {
-        'tripData.hotels': data.hotels || [],
-        'tripData.hostels': data.hostels || [],
-        'tripData.transportOptions': data.transportOptions || [],
-        stage: 2,
+      setTrip((prev) => {
+        if (!prev) return prev;
+
+        const updated = {
+          ...prev,
+          stage: 2,
+          tripData: {
+            ...prev.tripData,
+            hotels: data.hotels || [],
+            hostels: data.hostels || [],
+            transportOptions: data.transportOptions || [],
+          },
+        };
+
+        upsertTripDocumentInCache(updated);
+        return updated;
       });
-      setTrip(prev => ({
-        ...prev, stage: 2,
-        tripData: { ...prev.tripData, hotels: data.hotels || [], hostels: data.hostels || [], transportOptions: data.transportOptions || [] }
-      }));
     } catch (err) {
       console.error("Stage 2 failed:", err);
       toast.error("Failed to load hotel recommendations. Refresh to retry.");
@@ -125,17 +117,23 @@ function ViewTrip() {
         .replace('{travelInterests}', sel?.travelInterests?.join(', ') || 'general sightseeing');
       const text = await generateContent(prompt);
       const data = parseAIResponse(text);
-      const docRef = doc(db, 'finaltrip', tripId);
-      await updateDoc(docRef, {
-        'tripData.costBreakdown': data.costBreakdown || {},
-        'tripData.localExperiences': data.localExperiences || [],
-        'tripData.travelHacks': data.travelHacks || [],
-        stage: 3,
+      setTrip((prev) => {
+        if (!prev) return prev;
+
+        const updated = {
+          ...prev,
+          stage: 3,
+          tripData: {
+            ...prev.tripData,
+            costBreakdown: data.costBreakdown || {},
+            localExperiences: data.localExperiences || [],
+            travelHacks: data.travelHacks || [],
+          },
+        };
+
+        upsertTripDocumentInCache(updated);
+        return updated;
       });
-      setTrip(prev => ({
-        ...prev, stage: 3,
-        tripData: { ...prev.tripData, costBreakdown: data.costBreakdown || {}, localExperiences: data.localExperiences || [], travelHacks: data.travelHacks || [] }
-      }));
     } catch (err) {
       console.error("Stage 3 failed:", err);
       toast.error("Failed to load extras. Refresh to retry.");
