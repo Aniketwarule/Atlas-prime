@@ -426,32 +426,6 @@ function CreateTrip() {
             </div>
           </div>
         </div>
-
-        {/* Login Dialog */}
-        <Dialog open={openDialog}>
-          <DialogContent className="bg-white/95 dark:bg-[#111827]/95 backdrop-blur-2xl border border-cream-dark dark:border-white/10 p-10 rounded-3xl shadow-2xl font-sans max-w-md">
-            <DialogHeader>
-              <DialogTitle className="text-center mb-6">
-                <span className="font-serif text-3xl font-bold bg-gradient-to-r from-coral to-amber bg-clip-text text-transparent">Welcome Aboard!</span>
-              </DialogTitle>
-              <DialogDescription className="flex flex-col items-center">
-                <div className="relative w-20 h-20 mb-6">
-                  <div className="absolute inset-0 bg-gradient-to-r from-coral to-amber rounded-full blur-2xl opacity-30 animate-pulse" />
-                  <div className="relative w-20 h-20 bg-gradient-to-br from-coral to-amber rounded-full flex items-center justify-center shadow-xl">
-                    <span className="text-4xl">✨</span>
-                  </div>
-                </div>
-                <p className="text-slate-600 dark:text-slate-300 mb-8 text-center text-sm max-w-sm">
-                  Sign in to create personalized itineraries with AI-powered travel planning.
-                </p>
-                <Button onClick={login}
-                  className="w-full flex gap-3 items-center justify-center bg-gradient-to-r from-coral to-amber text-white py-5 rounded-xl font-bold shadow-xl hover:scale-[1.02]">
-                  <FaGoogle className="h-5 w-5" /> Continue with Google
-                </Button>
-              </DialogDescription>
-            </DialogHeader>
-          </DialogContent>
-        </Dialog>
       </div>
     </>
   );
