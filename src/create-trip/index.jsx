@@ -117,17 +117,6 @@ function CreateTrip() {
       const responseText = await generateContent(prompt);
       const itineraryData = parseAIResponse(responseText);
 
-      // Save Stage 1 to Firebase
-      const docId = Date.now().toString();
-      const userObj = JSON.parse(localStorage.getItem("user"));
-      await setDoc(doc(db, "finaltrip", docId), {
-        userSelection: formData,
-        tripData: itineraryData,
-        stage: 1,
-        userEmail: userObj?.email,
-        id: docId,
-      });
-
       savePlannedTripToCache({
         tripId: docId,
         formData,
