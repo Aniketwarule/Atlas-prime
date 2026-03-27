@@ -4,7 +4,6 @@ import './index.css'
 import App from './App.jsx'
 import { createBrowserRouter, RouterProvider } from 'react-router-dom'
 import { Toaster } from 'sonner'
-import { GoogleOAuthProvider } from '@react-oauth/google'
 import { ThemeProvider } from './context/ThemeContext'
 import CreateTrip from './create-trip'
 import ViewTrip from './view-trip/[tripId]'
@@ -21,11 +20,9 @@ const router = createBrowserRouter([
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
-    <GoogleOAuthProvider clientId={import.meta.env.VITE_GOOGLE_AUTH_CLIENT_ID}>
-      <ThemeProvider>
-        <RouterProvider router={router} />
-        <Toaster richColors position="top-right" />
-      </ThemeProvider>
-    </GoogleOAuthProvider>
+    <ThemeProvider>
+      <RouterProvider router={router} />
+      <Toaster richColors position="top-right" />
+    </ThemeProvider>
   </StrictMode>,
 )

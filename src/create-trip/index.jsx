@@ -1,15 +1,9 @@
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { PROMPT_STAGE_1, SelectBudgetoptions, SelectTravelesList, SelectTravelModes, SelectTravelInterests } from '@/constants/options';
-import { FaGoogle } from "react-icons/fa";
 import React, { useState } from 'react';
 import GooglePlacesAutoComplete from 'react-google-places-autocomplete';
 import { toast } from 'sonner';
-import {
-  Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle,
-} from "@/components/ui/dialog";
-import { useGoogleLogin } from '@react-oauth/google';
-import axios from 'axios';
 import { doc, setDoc } from 'firebase/firestore';
 import { db } from '@/service/fireBaseConfig';
 import { AiOutlineLoading3Quarters } from "react-icons/ai";
@@ -61,7 +55,6 @@ function CreateTrip() {
     sourceLocation: null, location: null, noOfDays: '', budget: '',
     traveler: '', travelerType: '', travelMode: '', travelInterests: [], departureDate: '', returnDate: ''
   });
-  const [openDialog, setOpenDialog] = useState(false);
   const [loading, setLoading] = useState(false);
   const navi = useNavigate();
 
@@ -92,11 +85,6 @@ function CreateTrip() {
     }
   };
 
-  const login = useGoogleLogin({
-    onSuccess: (codeResp) => GetUserProfile(codeResp),
-    onError: () => toast.error("Failed to log in."),
-  });
-
   const parseAIResponse = (text) => {
     let cleaned = text.trim();
     cleaned = cleaned.replace(/^```(?:json)?\s*/i, '').replace(/\s*```\s*$/i, '');
@@ -108,9 +96,6 @@ function CreateTrip() {
   };
 
   const onGenerateTrip = async () => {
-    const user = localStorage.getItem('user');
-    if (!user) { setOpenDialog(true); return; }
-
     const required = ['sourceLocation', 'location', 'noOfDays', 'budget', 'traveler', 'travelMode', 'departureDate'];
     for (const key of required) {
       if (!formData[key]) { toast("Please fill all the details"); return; }
@@ -156,16 +141,6 @@ function CreateTrip() {
       setLoading(false);
       toast.error("Failed to generate itinerary. Please try again.");
     }
-  };
-
-  const GetUserProfile = (tokenInfo) => {
-    axios.get(`https://www.googleapis.com/oauth2/v1/userinfo?access_token=${tokenInfo?.access_token}`, {
-      headers: { Authorization: `Bearer ${tokenInfo?.access_token}`, Accept: 'Application/json' }
-    }).then((resp) => {
-      localStorage.setItem('user', JSON.stringify(resp.data));
-      setOpenDialog(false);
-      onGenerateTrip();
-    }).catch(() => toast.error("Failed to fetch user profile."));
   };
 
   const canProceed = (step) => {
